@@ -35,17 +35,17 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-   const logout = async () => {
-        await csrf();
-
-        myAxios.post("/logout").then(() => {
-            setUser(null);
-        });
-    };
+  const logout = async () => {
+    await csrf();
+    await myAxios.post("/logout");
+    setUser(null);
+  };
 
     const loginReg = async ({ ...adat }, vegpont) => {
     //lekérjük a csrf tokent
     await csrf();
+
+
     setErrors({
       name: "",
       email: "",
@@ -55,6 +55,7 @@ export const AuthProvider = ({ children }) => {
 
     try {
       await myAxios.post(vegpont, adat);
+
       await getUser();
     } catch (error) {
       if (error?.response?.status === 422) {
@@ -66,17 +67,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-        const hasLaravelSession = document.cookie
-        .split("; ")
-        .some((cookie) => cookie.startsWith("laravel_session="));
-
-        if (!hasLaravelSession) {
-        setAuthLoading(false);
-        return;
-        }
-
-        getUser().finally(() => setAuthLoading(false));
-    }, []);
+    // laravel_session is HttpOnly — JS cannot read it; always ask the API
+    getUser().finally(() => setAuthLoading(false));
+  }, []);
 
         return (
             <AuthContext.Provider value={{ logout, loginReg, errors, getUser, user, authLoading }}>
